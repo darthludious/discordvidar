@@ -4,7 +4,7 @@ from discord.ext import commands
 import requests
 import random
 
-# Environment variables
+# Environment variables (make sure to add these in the Render dashboard)
 DISCORD_BOT_TOKEN = os.environ['DISCORD_BOT_TOKEN']
 API_URL_VIDAR = os.environ["API_URL_VIDAR"]
 API_URL_AVATAR = os.environ["API_URL_AVATAR"]
@@ -96,4 +96,5 @@ bot.add_command(avatar)
 bot.add_command(content)
 bot.add_command(script)
 
+# Start the bot
 bot.run(DISCORD_BOT_TOKEN)
