@@ -27,7 +27,7 @@ RESPONSES = [
 async def on_ready():
     print(f'Logged in as {bot.user.name} ({bot.user.id})')
 
-@bot.slash_command(name="vidar", description="Vidar QnA")
+@commands.command(name="vidar", description="Vidar QnA")
 async def vidar(ctx, question: str):
     response_msg = random.choice(RESPONSES).format(ctx.author.mention)
     await ctx.send(content=response_msg)
@@ -42,7 +42,7 @@ async def vidar(ctx, question: str):
         await ctx.author.send("Oops! Something went wrong. Please try again later.")
         print(f"Error: {e}")  # or use a logger to log the error
 
-@bot.slash_command(name="avatar", description="Create a psychographic client avatar")
+@commands.command(name="avatar", description="Create a psychographic client avatar")
 async def avatar(ctx, details: str):
     response_msg = random.choice(RESPONSES).format(ctx.author.mention)
     await ctx.send(content=response_msg)
@@ -58,7 +58,7 @@ async def avatar(ctx, details: str):
         await ctx.author.send("Oops! Something went wrong. Please try again later.")
         print(f"Error: {e}")
 
-@bot.slash_command(name="content", description="Find the latest newsworthy content for your client avatar")
+@commands.command(name="content", description="Find the latest newsworthy content for your client avatar")
 async def content(ctx, details: str):
     response_msg = random.choice(RESPONSES).format(ctx.author.mention)
     await ctx.send(content=response_msg)
@@ -74,7 +74,7 @@ async def content(ctx, details: str):
         await ctx.author.send("Oops! Something went wrong. Please try again later.")
         print(f"Error: {e}")
 
-@bot.slash_command(name="script", description="Create a custom video script")
+@commands.command(name="script", description="Create a custom video script")
 async def script(ctx, topic: str):
     response_msg = random.choice(RESPONSES).format(ctx.author.mention)
     await ctx.send(content=response_msg)
@@ -89,5 +89,11 @@ async def script(ctx, topic: str):
     except Exception as e:
         await ctx.author.send("Oops! Something went wrong. Please try again later.")
         print(f"Error: {e}")
+
+# Register the commands
+bot.add_command(vidar)
+bot.add_command(avatar)
+bot.add_command(content)
+bot.add_command(script)
 
 bot.run(DISCORD_BOT_TOKEN)
