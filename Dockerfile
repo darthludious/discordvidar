@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Define the command to start the bot
-CMD ["python", "bot.py"]
+CMD ["python", "discordRouter.py"]
