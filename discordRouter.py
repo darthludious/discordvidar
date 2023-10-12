@@ -1,7 +1,5 @@
 import os
 import discord
-from discord.ext import commands
-from discord_slash import SlashCommand, SlashContext
 import requests
 import random
 
@@ -12,11 +10,6 @@ API_URL_AVATAR = os.environ["API_URL_AVATAR"]
 API_URL_CONTENT = os.environ["API_URL_CONTENT"]
 API_URL_SCRIPT = os.environ["API_URL_SCRIPT"]
 
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='/', intents=intents)
-slash = SlashCommand(bot, sync_commands=True)  # Initialize slash commands
-
-# Different variations of the bot's response in channel
 RESPONSES = [
     "Absolutely, {}! I shall deliver the wisdom you seek in a private message shortly.",
     "Understood, {}! I'll craft a masterful response and send it directly to you.",
@@ -25,72 +18,59 @@ RESPONSES = [
     "Right away, {}! The essence of Vidar's knowledge will be in your DMs shortly."
 ]
 
+class CustomBot(discord.Client):
+    def __init__(self, *, intents: discord.Intents):
+        super().__init__(intents=intents)
+        self.tree = discord.app_commands.CommandTree(self)
+
+    async def setup_hook(self):
+        await self.tree.sync()
+
+bot = CustomBot(intents=discord.Intents.all())
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name} ({bot.user.id})')
 
-@slash.slash(name="vidar", description="Vidar QnA")
-async def _vidar(ctx: SlashContext, question: str):
-    response_msg = random.choice(RESPONSES).format(ctx.author.mention)
-    await ctx.send(content=response_msg)
+@bot.tree.command(name="vidar", description="Vidar QnA")
+async def vidar(interaction: discord.Interaction, question: str):
+    response_msg = random.choice(RESPONSES).format(interaction.user.mention)
+    await interaction.response.send_message(response_msg)
     try:
         output = requests.post(API_URL_VIDAR, json={"question": question}, timeout=30).json()
-        await ctx.author.send(output)  # Send the response as a DM
-    except requests.ConnectionError:
-        await ctx.author.send("Sorry, I'm having trouble connecting to my knowledge source right now. Please try again later.")
-    except requests.Timeout:
-        await ctx.author.send("It's taking longer than expected to fetch the answer. Please wait a moment and try again.")
+        await interaction.user.send(output)  # Send the response as a DM
     except Exception as e:
-        await ctx.author.send("Oops! Something went wrong. Please try again later.")
-        print(f"Error: {e}")
+        await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
-@slash.slash(name="avatar", description="Create a psychographic client avatar")
-async def _avatar(ctx: SlashContext, details: str):
-    response_msg = random.choice(RESPONSES).format(ctx.author.mention)
-    await ctx.send(content=response_msg)
-    message = f"Create a client psychographic avatar for the following company. Only respond with the client avatar. You don't need to add any commentary. {details}"
+@bot.tree.command(name="avatar", description="Create a psychographic client avatar")
+async def avatar(interaction: discord.Interaction, details: str):
+    response_msg = random.choice(RESPONSES).format(interaction.user.mention)
+    await interaction.response.send_message(response_msg)
     try:
-        output = requests.post(API_URL_AVATAR, json={"details": message}, timeout=30).json()
-        await ctx.author.send(output)
-    except requests.ConnectionError:
-        await ctx.author.send("Sorry, I'm having trouble connecting to my knowledge source right now. Please try again later.")
-    except requests.Timeout:
-        await ctx.author.send("It's taking longer than expected to fetch the answer. Please wait a moment and try again.")
+        output = requests.post(API_URL_AVATAR, json={"details": details}, timeout=30).json()
+        await interaction.user.send(output)
     except Exception as e:
-        await ctx.author.send("Oops! Something went wrong. Please try again later.")
-        print(f"Error: {e}")
+        await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
-@slash.slash(name="content", description="Find the latest newsworthy content for your client avatar")
-async def _content(ctx: SlashContext, details: str):
-    response_msg = random.choice(RESPONSES).format(ctx.author.mention)
-    await ctx.send(content=response_msg)
-    message = f"Find me 5 recent newsworthy articles that would engage my psychographic client avatars and be related to what I do. If you don't remember my client avatar use the following information to help you find the articles. I only need the articles, and a short synopsis of each and how they would engage my audience. {details}"
+@bot.tree.command(name="content", description="Find the latest newsworthy content for your client avatar")
+async def content(interaction: discord.Interaction, details: str):
+    response_msg = random.choice(RESPONSES).format(interaction.user.mention)
+    await interaction.response.send_message(response_msg)
     try:
-        output = requests.post(API_URL_CONTENT, json={"details": message}, timeout=30).json()
-        await ctx.author.send(output)
-    except requests.ConnectionError:
-        await ctx.author.send("Sorry, I'm having trouble connecting to my knowledge source right now. Please try again later.")
-    except requests.Timeout:
-        await ctx.author.send("It's taking longer than expected to fetch the answer. Please wait a moment and try again.")
+        output = requests.post(API_URL_CONTENT, json={"details": details}, timeout=30).json()
+        await interaction.user.send(output)
     except Exception as e:
-        await ctx.author.send("Oops! Something went wrong. Please try again later.")
-        print(f"Error: {e}")
+        await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
-@slash.slash(name="script", description="Create a custom video script")
-async def _script(ctx: SlashContext, topic: str):
-    response_msg = random.choice(RESPONSES).format(ctx.author.mention)
-    await ctx.send(content=response_msg)
-    message = f"Using my client psychographic avatar create an engaging script for the following prompt. If you don't remember my avatar, use the information to create one before creating your script. We only need the script, you don't have to provide any other information or commentary. Prompt: {topic}"
+@bot.tree.command(name="script", description="Create a custom video script")
+async def script(interaction: discord.Interaction, topic: str):
+    response_msg = random.choice(RESPONSES).format(interaction.user.mention)
+    await interaction.response.send_message(response_msg)
     try:
-        output = requests.post(API_URL_SCRIPT, json={"topic": message}, timeout=30).json()
-        await ctx.author.send(output)
-    except requests.ConnectionError:
-        await ctx.author.send("Sorry, I'm having trouble connecting to my knowledge source right now. Please try again later.")
-    except requests.Timeout:
-        await ctx.author.send("It's taking longer than expected to fetch the answer. Please wait a moment and try again.")
+        output = requests.post(API_URL_SCRIPT, json={"topic": topic}, timeout=30).json()
+        await interaction.user.send(output)
     except Exception as e:
-        await ctx.author.send("Oops! Something went wrong. Please try again later.")
-        print(f"Error: {e}")
+        await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
 # Start the bot
 bot.run(DISCORD_BOT_TOKEN)
