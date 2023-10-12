@@ -59,17 +59,8 @@ async def avatar(interaction: discord.Interaction, details: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        output = requests.post(API_URL_AVATAR, json={"details": details}, timeout=30).json()
-        await interaction.user.send(output)
-    except Exception as e:
-        await interaction.user.send("Oops! Something went wrong. Please try again later.")
-
-@bot.tree.command(name="content", description="Find the latest newsworthy content for your client avatar")
-async def content(interaction: discord.Interaction, details: str):
-    response_msg = random.choice(RESPONSES).format(interaction.user.mention)
-    await interaction.response.send_message(response_msg)
-    try:
-        output = requests.post(API_URL_CONTENT, json={"details": details}, timeout=30).json()
+        payload_question = "Create a psychographic client avatar based on the following information " + details
+        output = requests.post(API_URL_AVATAR, json={"question": payload_question}, timeout=30).json()
         await interaction.user.send(output)
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
@@ -79,10 +70,24 @@ async def script(interaction: discord.Interaction, topic: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        output = requests.post(API_URL_SCRIPT, json={"topic": topic}, timeout=30).json()
+        predefined_text = "Based on the following information write a short voice over video script that brings your business, product of service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. Vidar For the video script, use the hook, story, actionable steps format -For the hook, depending on what makes the most sense, use one of these ( ) based on what makes most sense for the context of the article, blog, YouTube video, regulatory change, or conversation happening online. -For the story, take inspiration from the article, blog, YouTube video, regulatory change, or conversation happening online and bring the business into the narrative as a solution. -For the actionable steps, research and provide actionable steps the viewer can use to solve their problem or address their needs. Details: "
+        payload_question = predefined_text + topic
+        output = requests.post(API_URL_SCRIPT, json={"question": payload_question}, timeout=30).json()
         await interaction.user.send(output)
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
+
+@bot.tree.command(name="content", description="Find the latest newsworthy content for your client avatar")
+async def content(interaction: discord.Interaction, details: str):
+    response_msg = random.choice(RESPONSES).format(interaction.user.mention)
+    await interaction.response.send_message(response_msg)
+    try:
+        payload_question = "Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + details
+        output = requests.post(API_URL_CONTENT, json={"question": payload_question}, timeout=30).json()
+        await interaction.user.send(output)
+    except Exception as e:
+        await interaction.user.send("Oops! Something went wrong. Please try again later.")
+
 
 # Start the bot
 bot.run(DISCORD_BOT_TOKEN)
