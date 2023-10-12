@@ -32,6 +32,18 @@ bot = CustomBot(intents=discord.Intents.all())
 async def on_ready():
     print(f'Logged in as {bot.user.name} ({bot.user.id})')
 
+@bot.event
+async def on_message(message: discord.Message):
+    # Check if the message is a DM and not sent by the bot
+    if isinstance(message.channel, discord.DMChannel) and not message.author.bot:
+        response_msg = random.choice(RESPONSES).format(message.author.mention)
+        await message.author.send(response_msg)
+        try:
+            output = requests.post(API_URL_VIDAR, json={"question": message.content}, timeout=30).json()
+            await message.author.send(output)  # Send the response as a DM
+        except Exception as e:
+            await message.author.send("Oops! Something went wrong. Please try again later.")
+
 @bot.tree.command(name="vidar", description="Vidar QnA")
 async def vidar(interaction: discord.Interaction, question: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
