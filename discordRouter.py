@@ -72,7 +72,10 @@ async def content(interaction: discord.Interaction, details: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        content_payload = "Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + details
+        content_payload = ("Vidar using the client avatar and / or the following information "
+                           "and find 3 recent (within 72 hours) article, blog, YouTube video, "
+                           "regulatory change, or conversation happening online that relates to "
+                           "my company and client avatar and summarize what that content is about. ") + details
         content_output = await bot.api_call(API_URL_CONTENT, {"question": content_payload})
         await interaction.user.send(content_output)
     except Exception as e:
@@ -83,17 +86,19 @@ async def script(interaction: discord.Interaction, topic: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        script_predefined_text = ("Based on the following information, write a short voice over video script that integrates your business, product, or service into the context of an article, blog, YouTube video, regulatory change, or online conversation. "
-      "For the video script, use the hook, story, actionable steps format. In the hook, tailor it to the context of the content. "
-      "For the story, draw inspiration from the content, positioning the business as a solution. "
-      "For the actionable steps, provide guidance that the viewer can use to address their needs or solve their problem. Details: ")
+        script_predefined_text = ("Based on the following information, write a short voice over video script "
+                                  "that integrates your business, product, or service into the context of "
+                                  "an article, blog, YouTube video, regulatory change, or online conversation. "
+                                  "For the video script, use the hook, story, actionable steps format. "
+                                  "In the hook, tailor it to the context of the content. "
+                                  "For the story, draw inspiration from the content, positioning the business as a solution. "
+                                  "For the actionable steps, provide guidance that the viewer can use to address their needs or solve their problem. Details: ")
 
         script_payload = script_predefined_text + topic
         script_output = await bot.api_call(API_URL_SCRIPT, {"question": script_payload})
         await interaction.user.send(script_output)
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
-
 
 @bot.tree.command(name="full_process", description="Creates Avatar, Finds Content, Writes Script")
 async def full_process(interaction: discord.Interaction, details: str):
@@ -104,16 +109,23 @@ async def full_process(interaction: discord.Interaction, details: str):
         await interaction.user.send("Avatar: " + avatar_output)
 
         # Use avatar_output in content logic
-        content_payload = "Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + avatar_output
+        content_payload = ("Vidar using the client avatar and / or the following information "
+                           "and find 3 recent (within 72 hours) article, blog, YouTube video, "
+                           "regulatory change, or conversation happening online that relates to "
+                           "my company and client avatar and summarize what that content is about. ") + avatar_output
         content_output = await bot.api_call(API_URL_CONTENT, {"question": content_payload})
         await interaction.user.send("Content: " + content_output)
 
         # Use content_output in script logic
-        script_predefined_text = ("Based on the following information, write a short voice over video script that brings your business, product or service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. "
+        script_predefined_text = ("Based on the following information, write a short voice over video script "
+                                  "that brings your business, product or service into the narrative with the article, "
+                                  "blog, YouTube video, regulatory change, or conversation happening online. "
                                   "Vidar For the video script, use the hook, story, actionable steps format. "
-                                  "For the hook, depending on what makes the most sense, use one of these ( ) based on the context of the article, blog, YouTube video, regulatory change, or conversation happening online. "
+                                  "For the hook, depending on what makes the most sense, use one of these ( ) based on the context of "
+                                  "the article, blog, YouTube video, regulatory change, or conversation happening online. "
                                   "For the story, take inspiration from the content and bring the business into the narrative as a solution. "
                                   "For the actionable steps, research and provide steps the viewer can use to solve their problem or address their needs. Details: ")
+
         script_payload = script_predefined_text + content_output
         script_output = await bot.api_call(API_URL_SCRIPT, {"question": script_payload})
         await interaction.user.send("Script: " + script_output)
@@ -123,3 +135,4 @@ async def full_process(interaction: discord.Interaction, details: str):
 
 # Start the bot
 bot.run(DISCORD_BOT_TOKEN)
+
