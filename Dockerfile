@@ -9,6 +9,8 @@ COPY requirements.txt requirements.txt
 
 # Install the Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install discord-py-slash-command
+
 
 # Copy the rest of your bot files into the container
 COPY . .
