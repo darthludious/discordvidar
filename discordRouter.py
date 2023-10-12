@@ -43,7 +43,7 @@ async def avatar(interaction: disnake.ApplicationCommandInteraction, details: st
     try:
         response_msg = random.choice(RESPONSES).format(interaction.user.mention)
         await interaction.response.send_message(response_msg, ephemeral=True)
-        avatar_payload = "Create a psychographic client avatar based on the following information " + details
+        avatar_payload = "If your response will be over 1500 characters, send your response in multiple messages. Create a psychographic client avatar based on the following information.  " + details
         avatar_output = await api_call(API_URL_AVATAR, {"question": avatar_payload})
         await interaction.user.send(avatar_output)
     except Exception as e:
