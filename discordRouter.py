@@ -36,11 +36,9 @@ async def on_ready():
 async def on_message(message: discord.Message):
     # Check if the message is a DM and not sent by the bot
     if isinstance(message.channel, discord.DMChannel) and not message.author.bot:
-        response_msg = random.choice(RESPONSES).format(message.author.mention)
-        await message.author.send(response_msg)
         try:
             output = requests.post(API_URL_VIDAR, json={"question": message.content}, timeout=30).json()
-            await message.author.send(output)  # Send the response as a DM
+            await message.author.send(output["question"])  # Send the response as a DM
         except Exception as e:
             await message.author.send("Oops! Something went wrong. Please try again later.")
 
@@ -50,7 +48,7 @@ async def vidar(interaction: discord.Interaction, question: str):
     await interaction.response.send_message(response_msg)
     try:
         output = requests.post(API_URL_VIDAR, json={"question": question}, timeout=30).json()
-        await interaction.user.send(output)  # Send the response as a DM
+        await interaction.user.send(output["question"])  # Send the response as a DM
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
@@ -61,7 +59,7 @@ async def avatar(interaction: discord.Interaction, details: str):
     try:
         payload_question = "Create a psychographic client avatar based on the following information " + details
         output = requests.post(API_URL_AVATAR, json={"question": payload_question}, timeout=30).json()
-        await interaction.user.send(output)
+        await interaction.user.send(output["question"])
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
@@ -70,10 +68,10 @@ async def script(interaction: discord.Interaction, topic: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        predefined_text = "Based on the following information write a short voice over video script that brings your business, product of service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. Vidar For the video script, use the hook, story, actionable steps format -For the hook, depending on what makes the most sense, use one of these ( ) based on what makes most sense for the context of the article, blog, YouTube video, regulatory change, or conversation happening online. -For the story, take inspiration from the article, blog, YouTube video, regulatory change, or conversation happening online and bring the business into the narrative as a solution. -For the actionable steps, research and provide actionable steps the viewer can use to solve their problem or address their needs. Details: "
+        predefined_text = "... predefined text ... Details: "
         payload_question = predefined_text + topic
         output = requests.post(API_URL_SCRIPT, json={"question": payload_question}, timeout=30).json()
-        await interaction.user.send(output)
+        await interaction.user.send(output["question"])
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
@@ -82,12 +80,40 @@ async def content(interaction: discord.Interaction, details: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        payload_question = "Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + details
+        payload_question = "Vidar using the client avatar and / or the following information ... " + details
         output = requests.post(API_URL_CONTENT, json={"question": payload_question}, timeout=30).json()
-        await interaction.user.send(output)
+        await interaction.user.send(output["question"])
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
+@bot.tree.command(name="full_process", description="Creates Avatar, Finds Content, Writes Script")
+async def full_process(interaction: discord.Interaction, details: str):
+    try:
+        # Execute avatar logic
+        avatar_payload = {
+            "question": "Create a psychographic client avatar based on the following information " + details
+        }
+        avatar_output = requests.post(API_URL_AVATAR, json=avatar_payload, timeout=30).json()
+        await interaction.user.send(avatar_output["question"])  # Send avatar response to user
+
+        # Use avatar_output in content logic
+        content_payload = {
+            "question": "Vidar using the client avatar and / or the following information ... " + avatar_output["question"]
+        }
+        content_output = requests.post(API_URL_CONTENT, json=content_payload, timeout=30).json()
+        await interaction.user.send(content_output["question"])  # Send content response to user
+
+        # Use content_output in script logic
+        script_predefined_text = "... predefined text ... Details: "
+        script_payload = {
+            "question": script_predefined_text + content_output["question"]
+        }
+        script_output = requests.post(API_URL_SCRIPT, json=script_payload, timeout=30).json()
+        await interaction.user.send(script_output["question"])  # Send script response to user
+
+    except Exception as e:
+        await interaction.user.send("Oops! Something went wrong during the full process. Please try again later.")
 
 # Start the bot
 bot.run(DISCORD_BOT_TOKEN)
+
