@@ -1,6 +1,6 @@
 import os
 import discord
-import requests
+import aiohttp
 import random
 
 # Environment variables
@@ -26,6 +26,11 @@ class CustomBot(discord.Client):
     async def setup_hook(self):
         await self.tree.sync()
 
+    async def api_call(self, url, payload):
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload) as response:
+                return await response.json()
+
 bot = CustomBot(intents=discord.Intents.all())
 
 @bot.event
@@ -34,11 +39,10 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
-    # Check if the message is a DM and not sent by the bot
     if isinstance(message.channel, discord.DMChannel) and not message.author.bot:
         try:
-            output = requests.post(API_URL_VIDAR, json={"question": message.content}, timeout=30).json()
-            await message.author.send(output["question"])  # Send the response as a DM
+            output = await bot.api_call(API_URL_VIDAR, {"question": message.content})
+            await message.author.send(output)  # Send the response as a DM
         except Exception as e:
             await message.author.send("Oops! Something went wrong. Please try again later.")
 
@@ -47,8 +51,8 @@ async def vidar(interaction: discord.Interaction, question: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        output = requests.post(API_URL_VIDAR, json={"question": question}, timeout=30).json()
-        await interaction.user.send(output["question"])  # Send the response as a DM
+        output = await bot.api_call(API_URL_VIDAR, {"question": question})
+        await interaction.user.send(output)
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
@@ -57,21 +61,9 @@ async def avatar(interaction: discord.Interaction, details: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        payload_question = "Create a psychographic client avatar based on the following information " + details
-        output = requests.post(API_URL_AVATAR, json={"question": payload_question}, timeout=30).json()
-        await interaction.user.send(output["question"])
-    except Exception as e:
-        await interaction.user.send("Oops! Something went wrong. Please try again later.")
-
-@bot.tree.command(name="script", description="Create a custom video script")
-async def script(interaction: discord.Interaction, topic: str):
-    response_msg = random.choice(RESPONSES).format(interaction.user.mention)
-    await interaction.response.send_message(response_msg)
-    try:
-        predefined_text = "... predefined text ... Details: "
-        payload_question = predefined_text + topic
-        output = requests.post(API_URL_SCRIPT, json={"question": payload_question}, timeout=30).json()
-        await interaction.user.send(output["question"])
+        avatar_payload = "Create a psychographic client avatar based on the following information " + details
+        avatar_output = await bot.api_call(API_URL_AVATAR, {"question": avatar_payload})
+        await interaction.user.send(avatar_output)
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
@@ -80,9 +72,25 @@ async def content(interaction: discord.Interaction, details: str):
     response_msg = random.choice(RESPONSES).format(interaction.user.mention)
     await interaction.response.send_message(response_msg)
     try:
-        payload_question = "Vidar using the client avatar and / or the following information ... " + details
-        output = requests.post(API_URL_CONTENT, json={"question": payload_question}, timeout=30).json()
-        await interaction.user.send(output["question"])
+        content_payload = "Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + details
+        content_output = await bot.api_call(API_URL_CONTENT, {"question": content_payload})
+        await interaction.user.send(content_output)
+    except Exception as e:
+        await interaction.user.send("Oops! Something went wrong. Please try again later.")
+
+@bot.tree.command(name="script", description="Create a custom video script")
+async def script(interaction: discord.Interaction, topic: str):
+    response_msg = random.choice(RESPONSES).format(interaction.user.mention)
+    await interaction.response.send_message(response_msg)
+    try:
+        script_predefined_text = ("Based on the following information, write a short voice over video script that brings your business, product of service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. "
+                                  "Vidar For the video script, use the hook, story, actionable steps format -For the hook, depending on what makes the most sense, use one of these ( ) based on what makes most sense for the context of the article, blog, YouTube video, regulatory change, or conversation happening online. "
+                                  "-For the story, take inspiration from the article, blog, YouTube video, regulatory change, or conversation happening online and bring the business into the narrative as
+                                  "the narrative as a solution. "
+                                  "-For the actionable steps, research and provide actionable steps the viewer can use to solve their problem or address their needs. Details: ")
+        script_payload = script_predefined_text + topic
+        script_output = await bot.api_call(API_URL_SCRIPT, {"question": script_payload})
+        await interaction.user.send(script_output)
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
@@ -90,30 +98,27 @@ async def content(interaction: discord.Interaction, details: str):
 async def full_process(interaction: discord.Interaction, details: str):
     try:
         # Execute avatar logic
-        avatar_payload = {
-            "question": "Create a psychographic client avatar based on the following information " + details
-        }
-        avatar_output = requests.post(API_URL_AVATAR, json=avatar_payload, timeout=30).json()
-        await interaction.user.send(avatar_output["question"])  # Send avatar response to user
+        avatar_payload = "Create a psychographic client avatar based on the following information " + details
+        avatar_output = await bot.api_call(API_URL_AVATAR, {"question": avatar_payload})
+        await interaction.user.send("Avatar: " + avatar_output)
 
         # Use avatar_output in content logic
-        content_payload = {
-            "question": "Vidar using the client avatar and / or the following information ... " + avatar_output["question"]
-        }
-        content_output = requests.post(API_URL_CONTENT, json=content_payload, timeout=30).json()
-        await interaction.user.send(content_output["question"])  # Send content response to user
+        content_payload = "Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + avatar_output
+        content_output = await bot.api_call(API_URL_CONTENT, {"question": content_payload})
+        await interaction.user.send("Content: " + content_output)
 
         # Use content_output in script logic
-        script_predefined_text = "... predefined text ... Details: "
-        script_payload = {
-            "question": script_predefined_text + content_output["question"]
-        }
-        script_output = requests.post(API_URL_SCRIPT, json=script_payload, timeout=30).json()
-        await interaction.user.send(script_output["question"])  # Send script response to user
+        script_predefined_text = ("Based on the following information, write a short voice over video script that brings your business, product or service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. "
+                                  "Vidar For the video script, use the hook, story, actionable steps format. "
+                                  "For the hook, depending on what makes the most sense, use one of these ( ) based on the context of the article, blog, YouTube video, regulatory change, or conversation happening online. "
+                                  "For the story, take inspiration from the content and bring the business into the narrative as a solution. "
+                                  "For the actionable steps, research and provide steps the viewer can use to solve their problem or address their needs. Details: ")
+        script_payload = script_predefined_text + content_output
+        script_output = await bot.api_call(API_URL_SCRIPT, {"question": script_payload})
+        await interaction.user.send("Script: " + script_output)
 
     except Exception as e:
         await interaction.user.send("Oops! Something went wrong during the full process. Please try again later.")
 
 # Start the bot
 bot.run(DISCORD_BOT_TOKEN)
-
