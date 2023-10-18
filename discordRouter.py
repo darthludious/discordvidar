@@ -58,9 +58,15 @@ async def content(interaction: disnake.ApplicationCommandInteraction, details: s
 @bot.slash_command(name="script", description="Create a custom video script")
 async def script(interaction: disnake.ApplicationCommandInteraction, topic: str):
     await interaction.response.defer()
-    script_output = await api_call(API_URL_SCRIPT, {"question": topic})
+    script_predefined_text = ("Based on the following information, write a short voice over video script that brings your business, product or service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. "
+                              "Vidar For the video script, use the hook, story, actionable steps format. "
+                              "For the hook, depending on what makes the most sense, use one of these ( ) based on the context of the article, blog, YouTube video, regulatory change, or conversation happening online. "
+                              "For the story, take inspiration from the content and bring the business into the narrative as a solution. "
+                              "For the actionable steps, research and provide steps the viewer can use to solve their problem or address their needs. Details: " + topic)
+    script_output = await api_call(API_URL_SCRIPT, {"question": script_predefined_text})
     await send_discord_message(interaction, script_output)
     await interaction.followup.send("Response sent via DM!")
+
 
 @bot.slash_command(name="full_process", description="Full process from avatar creation to video script")
 async def full_process(interaction: disnake.ApplicationCommandInteraction, details: str):
