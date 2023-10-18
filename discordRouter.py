@@ -25,8 +25,9 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def api_call(url, payload):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=payload) as response:
-            if response.headers.get('Content-Type') != 'application/json':
-                raise ValueError(f"Unexpected response content type: {response.headers.get('Content-Type')}")
+            content_type = response.headers.get('Content-Type')
+            if not content_type.startswith('application/json'):
+                raise ValueError(f"Unexpected response content type: {content_type}")
             return await response.json()
 
 async def send_discord_message(interaction, message):
