@@ -25,12 +25,10 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def api_call(url, payload):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=payload) as response:
-            content_type = response.headers.get('Content-Type')
-            if not content_type.startswith('application/json'):
-                raise ValueError(f"Unexpected response content type: {content_type}")
             return await response.json()
 
 async def send_discord_message(interaction, message):
+    # Split message if it's longer than 2000 characters
     while message:
         chunk = message[:2000]
         await interaction.user.send(chunk)
@@ -38,37 +36,38 @@ async def send_discord_message(interaction, message):
 
 @bot.slash_command(name="vidar", description="Vidar QnA")
 async def vidar(interaction: disnake.ApplicationCommandInteraction, question: str):
-    await interaction.response.defer()
+    await interaction.response.defer()  # Vidar is thinking...
     output = await api_call(API_URL_VIDAR, {"question": question})
     await send_discord_message(interaction, output)
+    await interaction.followup.send("Response sent via DM!")  # Update the original deferred message
 
 @bot.slash_command(name="avatar", description="Create a psychographic client avatar")
 async def avatar(interaction: disnake.ApplicationCommandInteraction, details: str):
     await interaction.response.defer()
-    avatar_payload = "Create a psychographic client avatar based on the following information. " + details
-    avatar_output = await api_call(API_URL_AVATAR, {"question": avatar_payload})
+    avatar_output = await api_call(API_URL_AVATAR, {"question": details})
     await send_discord_message(interaction, avatar_output)
+    await interaction.followup.send("Response sent via DM!") 
 
 @bot.slash_command(name="content", description="Find the latest newsworthy content for your client avatar")
 async def content(interaction: disnake.ApplicationCommandInteraction, details: str):
     await interaction.response.defer()
-    content_payload = ("Find 3 recent (within 72 hours) articles, blogs, YouTube videos, regulatory changes, or conversations happening online that relate to my company and client avatar and summarize what that content is about. " + details)
-    content_output = await api_call(API_URL_CONTENT, {"question": content_payload})
+    content_output = await api_call(API_URL_CONTENT, {"question": details})
     await send_discord_message(interaction, content_output)
+    await interaction.followup.send("Response sent via DM!")
 
 @bot.slash_command(name="script", description="Create a custom video script")
 async def script(interaction: disnake.ApplicationCommandInteraction, topic: str):
     await interaction.response.defer()
-    script_predefined_text = ("Write a short voice over video script that integrates your business, product, or service into the context of an article, blog, YouTube video, regulatory change, or conversation happening online that relates to your company and client avatar. " + topic)
-    script_output = await api_call(API_URL_SCRIPT, {"question": script_predefined_text})
+    script_output = await api_call(API_URL_SCRIPT, {"question": topic})
     await send_discord_message(interaction, script_output)
+    await interaction.followup.send("Response sent via DM!")
 
 @bot.slash_command(name="full_process", description="Full process from avatar creation to video script")
 async def full_process(interaction: disnake.ApplicationCommandInteraction, details: str):
     await interaction.response.defer()
-    full_process_payload = ("Create a psychographic client avatar, then find 3 recent articles or content related to the company and client avatar, and finally, write a video script integrating the business into the context of the content. " + details)
-    full_process_output = await api_call(API_URL_CONTENT, {"question": full_process_payload})
+    full_process_output = await api_call(API_URL_CONTENT, {"question": details})
     await send_discord_message(interaction, full_process_output)
+    await interaction.followup.send("Response sent via DM!")
 
 @bot.event
 async def on_ready():
