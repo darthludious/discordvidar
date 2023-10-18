@@ -25,7 +25,16 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def api_call(url, payload):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=payload) as response:
+            if response.headers.get('Content-Type') != 'application/json':
+                raise ValueError(f"Unexpected response content type: {response.headers.get('Content-Type')}")
             return await response.json()
+
+async def send_discord_message(interaction, message):
+    # Split message if it's longer than 2000 characters
+    while message:
+        chunk = message[:2000]
+        await interaction.user.send(chunk)
+        message = message[2000:]
 
 @bot.slash_command(name="vidar", description="Vidar QnA")
 async def vidar(interaction: disnake.ApplicationCommandInteraction, question: str):
@@ -33,7 +42,7 @@ async def vidar(interaction: disnake.ApplicationCommandInteraction, question: st
         response_msg = random.choice(RESPONSES).format(interaction.user.mention)
         await interaction.response.send_message(response_msg, ephemeral=True)
         output = await api_call(API_URL_VIDAR, {"question": question})
-        await interaction.user.send(output)
+        await send_discord_message(interaction, output)
     except Exception as e:
         print(f"Error in vidar command: {e}")
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
@@ -45,7 +54,7 @@ async def avatar(interaction: disnake.ApplicationCommandInteraction, details: st
         await interaction.response.send_message(response_msg, ephemeral=True)
         avatar_payload = "If your response will be over 1500 characters, send your response in multiple messages. Create a psychographic client avatar based on the following information.  " + details
         avatar_output = await api_call(API_URL_AVATAR, {"question": avatar_payload})
-        await interaction.user.send(avatar_output)
+        await send_discord_message(interaction, avatar_output)
     except Exception as e:
         print(f"Error in avatar command: {e}")
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
@@ -57,7 +66,7 @@ async def content(interaction: disnake.ApplicationCommandInteraction, details: s
         await interaction.response.send_message(response_msg, ephemeral=True)
         content_payload = ("Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + details)
         content_output = await api_call(API_URL_CONTENT, {"question": content_payload})
-        await interaction.user.send(content_output)
+        await send_discord_message(interaction, content_output)
     except Exception as e:
         print(f"Error in content command: {e}")
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
@@ -67,43 +76,24 @@ async def script(interaction: disnake.ApplicationCommandInteraction, topic: str)
     try:
         response_msg = random.choice(RESPONSES).format(interaction.user.mention)
         await interaction.response.send_message(response_msg, ephemeral=True)
-        script_predefined_text = ("Based on the following information, write a short voice over video script that integrates your business, product, or service into the context of an article, blog, YouTube video, regulatory change, or online conversation. "
-                                  "For the video script, use the hook, story, actionable steps format. In the hook, tailor it to the context of the content. "
-                                  "For the story, draw inspiration from the content, positioning the business as a solution. "
-                                  "For the actionable steps, provide guidance that the viewer can use to address their needs or solve their problem. Details: ")
-        script_payload = script_predefined_text + topic
-        script_output = await api_call(API_URL_SCRIPT, {"question": script_payload})
-        await interaction.user.send(script_output)
+        script_predefined_text = ("Based on the following information, write a short voice over video script that integrates your business, product, or service into the context of an article, blog, YouTube video, regulatory change, or conversation happening online that relates to your company and client avatar. " + topic)
+        script_output = await api_call(API_URL_SCRIPT, {"question": script_predefined_text})
+        await send_discord_message(interaction, script_output)
     except Exception as e:
         print(f"Error in script command: {e}")
         await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
-@bot.slash_command(name="full_process", description="Creates Avatar, Finds Content, Writes Script")
+@bot.slash_command(name="full_process", description="Full process from avatar creation to video script")
 async def full_process(interaction: disnake.ApplicationCommandInteraction, details: str):
     try:
-        # Execute avatar logic
-        avatar_payload = "Create a psychographic client avatar based on the following information " + details
-        avatar_output = await api_call(API_URL_AVATAR, {"question": avatar_payload})
-        await interaction.user.send("Avatar: " + avatar_output)
-
-        # Use avatar_output in content logic
-        content_payload = ("Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + avatar_output)
-        content_output = await api_call(API_URL_CONTENT, {"question": content_payload})
-        await interaction.user.send("Content: " + content_output)
-
-        # Use content_output in script logic
-        script_predefined_text = ("Based on the following information, write a short voice over video script that brings your business, product or service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. "
-                                  "Vidar For the video script, use the hook, story, actionable steps format. "
-                                  "For the hook, depending on what makes the most sense, use one of these ( ) based on the context of the article, blog, YouTube video, regulatory change, or conversation happening online. "
-                                  "For the story, take inspiration from the content and bring the business into the narrative as a solution. "
-                                  "For the actionable steps, research and provide steps the viewer can use to solve their problem or address their needs. Details: ")
-        script_payload = script_predefined_text + content_output
-        script_output = await api_call(API_URL_SCRIPT, {"question": script_payload})
-        await interaction.user.send("Script: " + script_output)
-
+        response_msg = random.choice(RESPONSES).format(interaction.user.mention)
+        await interaction.response.send_message(response_msg, ephemeral=True)
+        full_process_payload = ("Vidar, I need you to take the following information and create a psychographic client avatar. Then, using that client avatar, find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. Finally, write a short voice over video script that integrates your business, product, or service into the context of one of those pieces of content. " + details)
+        full_process_output = await api_call(API_URL_CONTENT, {"question": full_process_payload})
+        await send_discord_message(interaction, full_process_output)
     except Exception as e:
         print(f"Error in full_process command: {e}")
-        await interaction.user.send("Oops! Something went wrong during the full process. Please try again later.")
+        await interaction.user.send("Oops! Something went wrong. Please try again later.")
 
 @bot.event
 async def on_ready():
