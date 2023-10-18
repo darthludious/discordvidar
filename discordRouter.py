@@ -31,7 +31,6 @@ async def api_call(url, payload):
             return await response.json()
 
 async def send_discord_message(interaction, message):
-    # Split message if it's longer than 2000 characters
     while message:
         chunk = message[:2000]
         await interaction.user.send(chunk)
@@ -39,57 +38,37 @@ async def send_discord_message(interaction, message):
 
 @bot.slash_command(name="vidar", description="Vidar QnA")
 async def vidar(interaction: disnake.ApplicationCommandInteraction, question: str):
-    try:
-        await interaction.response.defer()
-        output = await api_call(API_URL_VIDAR, {"question": question})
-        await send_discord_message(interaction, output)
-    except Exception as e:
-        print(f"Error in vidar command: {e}")
-        await interaction.user.send("Oops! Something went wrong. Please try again later.")
+    await interaction.response.defer()
+    output = await api_call(API_URL_VIDAR, {"question": question})
+    await send_discord_message(interaction, output)
 
 @bot.slash_command(name="avatar", description="Create a psychographic client avatar")
 async def avatar(interaction: disnake.ApplicationCommandInteraction, details: str):
-    try:
-        await interaction.response.defer()
-        avatar_payload = "If your response will be over 1500 characters, send your response in multiple messages. Create a psychographic client avatar based on the following information.  " + details
-        avatar_output = await api_call(API_URL_AVATAR, {"question": avatar_payload})
-        await send_discord_message(interaction, avatar_output)
-    except Exception as e:
-        print(f"Error in avatar command: {e}")
-        await interaction.user.send("Oops! Something went wrong. Please try again later.")
+    await interaction.response.defer()
+    avatar_payload = "Create a psychographic client avatar based on the following information. " + details
+    avatar_output = await api_call(API_URL_AVATAR, {"question": avatar_payload})
+    await send_discord_message(interaction, avatar_output)
 
 @bot.slash_command(name="content", description="Find the latest newsworthy content for your client avatar")
 async def content(interaction: disnake.ApplicationCommandInteraction, details: str):
-    try:
-        await interaction.response.defer()
-        content_payload = ("Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + details)
-        content_output = await api_call(API_URL_CONTENT, {"question": content_payload})
-        await send_discord_message(interaction, content_output)
-    except Exception as e:
-        print(f"Error in content command: {e}")
-        await interaction.user.send("Oops! Something went wrong. Please try again later.")
+    await interaction.response.defer()
+    content_payload = ("Find 3 recent (within 72 hours) articles, blogs, YouTube videos, regulatory changes, or conversations happening online that relate to my company and client avatar and summarize what that content is about. " + details)
+    content_output = await api_call(API_URL_CONTENT, {"question": content_payload})
+    await send_discord_message(interaction, content_output)
 
 @bot.slash_command(name="script", description="Create a custom video script")
 async def script(interaction: disnake.ApplicationCommandInteraction, topic: str):
-    try:
-        await interaction.response.defer()
-        script_predefined_text = ("Based on the following information, write a short voice over video script that integrates your business, product, or service into the context of an article, blog, YouTube video, regulatory change, or conversation happening online that relates to your company and client avatar. " + topic)
-        script_output = await api_call(API_URL_SCRIPT, {"question": script_predefined_text})
-        await send_discord_message(interaction, script_output)
-    except Exception as e:
-        print(f"Error in script command: {e}")
-        await interaction.user.send("Oops! Something went wrong. Please try again later.")
+    await interaction.response.defer()
+    script_predefined_text = ("Write a short voice over video script that integrates your business, product, or service into the context of an article, blog, YouTube video, regulatory change, or conversation happening online that relates to your company and client avatar. " + topic)
+    script_output = await api_call(API_URL_SCRIPT, {"question": script_predefined_text})
+    await send_discord_message(interaction, script_output)
 
 @bot.slash_command(name="full_process", description="Full process from avatar creation to video script")
 async def full_process(interaction: disnake.ApplicationCommandInteraction, details: str):
-    try:
-        await interaction.response.defer()
-        full_process_payload = ("Vidar, I need you to take the following information and create a psychographic client avatar. Then, using that client avatar, find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. Finally, write a short voice over video script that integrates your business, product, or service into the context of one of those pieces of content. " + details)
-        full_process_output = await api_call(API_URL_CONTENT, {"question": full_process_payload})
-        await send_discord_message(interaction, full_process_output)
-    except Exception as e:
-        print(f"Error in full_process command: {e}")
-        await interaction.user.send("Oops! Something went wrong. Please try again later.")
+    await interaction.response.defer()
+    full_process_payload = ("Create a psychographic client avatar, then find 3 recent articles or content related to the company and client avatar, and finally, write a video script integrating the business into the context of the content. " + details)
+    full_process_output = await api_call(API_URL_CONTENT, {"question": full_process_payload})
+    await send_discord_message(interaction, full_process_output)
 
 @bot.event
 async def on_ready():
