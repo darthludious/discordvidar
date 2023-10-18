@@ -39,8 +39,7 @@ async def send_discord_message(interaction, message):
 @bot.slash_command(name="vidar", description="Vidar QnA")
 async def vidar(interaction: disnake.ApplicationCommandInteraction, question: str):
     try:
-        response_msg = random.choice(RESPONSES).format(interaction.user.mention)
-        await interaction.response.send_message(response_msg, ephemeral=True)
+        await interaction.response.defer()
         output = await api_call(API_URL_VIDAR, {"question": question})
         await send_discord_message(interaction, output)
     except Exception as e:
@@ -50,8 +49,7 @@ async def vidar(interaction: disnake.ApplicationCommandInteraction, question: st
 @bot.slash_command(name="avatar", description="Create a psychographic client avatar")
 async def avatar(interaction: disnake.ApplicationCommandInteraction, details: str):
     try:
-        response_msg = random.choice(RESPONSES).format(interaction.user.mention)
-        await interaction.response.send_message(response_msg, ephemeral=True)
+        await interaction.response.defer()
         avatar_payload = "If your response will be over 1500 characters, send your response in multiple messages. Create a psychographic client avatar based on the following information.  " + details
         avatar_output = await api_call(API_URL_AVATAR, {"question": avatar_payload})
         await send_discord_message(interaction, avatar_output)
@@ -62,8 +60,7 @@ async def avatar(interaction: disnake.ApplicationCommandInteraction, details: st
 @bot.slash_command(name="content", description="Find the latest newsworthy content for your client avatar")
 async def content(interaction: disnake.ApplicationCommandInteraction, details: str):
     try:
-        response_msg = random.choice(RESPONSES).format(interaction.user.mention)
-        await interaction.response.send_message(response_msg, ephemeral=True)
+        await interaction.response.defer()
         content_payload = ("Vidar using the client avatar and / or the following information and find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. " + details)
         content_output = await api_call(API_URL_CONTENT, {"question": content_payload})
         await send_discord_message(interaction, content_output)
@@ -74,8 +71,7 @@ async def content(interaction: disnake.ApplicationCommandInteraction, details: s
 @bot.slash_command(name="script", description="Create a custom video script")
 async def script(interaction: disnake.ApplicationCommandInteraction, topic: str):
     try:
-        response_msg = random.choice(RESPONSES).format(interaction.user.mention)
-        await interaction.response.send_message(response_msg, ephemeral=True)
+        await interaction.response.defer()
         script_predefined_text = ("Based on the following information, write a short voice over video script that integrates your business, product, or service into the context of an article, blog, YouTube video, regulatory change, or conversation happening online that relates to your company and client avatar. " + topic)
         script_output = await api_call(API_URL_SCRIPT, {"question": script_predefined_text})
         await send_discord_message(interaction, script_output)
@@ -86,8 +82,7 @@ async def script(interaction: disnake.ApplicationCommandInteraction, topic: str)
 @bot.slash_command(name="full_process", description="Full process from avatar creation to video script")
 async def full_process(interaction: disnake.ApplicationCommandInteraction, details: str):
     try:
-        response_msg = random.choice(RESPONSES).format(interaction.user.mention)
-        await interaction.response.send_message(response_msg, ephemeral=True)
+        await interaction.response.defer()
         full_process_payload = ("Vidar, I need you to take the following information and create a psychographic client avatar. Then, using that client avatar, find 3 recent (within 72 hours) article, blog, YouTube video, regulatory change, or conversation happening online that relates to my company and client avatar and summarize what that content is about. Finally, write a short voice over video script that integrates your business, product, or service into the context of one of those pieces of content. " + details)
         full_process_output = await api_call(API_URL_CONTENT, {"question": full_process_payload})
         await send_discord_message(interaction, full_process_output)
