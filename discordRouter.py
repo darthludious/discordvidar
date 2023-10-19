@@ -1,5 +1,4 @@
 import os
-import random
 import aiohttp
 import disnake
 from disnake.ext import commands
@@ -10,14 +9,6 @@ API_URL_VIDAR = os.environ["API_URL_VIDAR"]
 API_URL_AVATAR = os.environ["API_URL_AVATAR"]
 API_URL_CONTENT = os.environ["API_URL_CONTENT"]
 API_URL_SCRIPT = os.environ["API_URL_SCRIPT"]
-
-RESPONSES = [
-    "Absolutely, {}! I shall deliver the wisdom you seek in a private message shortly.",
-    "Understood, {}! I'll craft a masterful response and send it directly to you.",
-    "Of course, {}! I'm conjuring my videography magic and will DM you the result.",
-    "Fear not, {}! Vidar is on the task. Check your direct messages in a moment.",
-    "Right away, {}! The essence of Vidar's knowledge will be in your DMs shortly."
-]
 
 intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -34,15 +25,15 @@ async def send_discord_message(interaction, message):
         await interaction.user.send(chunk)
         message = message[2000:]
 
-# This function fetches the avatar based on the provided details
+# Fetch avatar based on the provided details
 async def fetch_avatar(details: str):
     return await api_call(API_URL_AVATAR, {"question": details})
 
-# This function fetches the content based on the avatar
+# Fetch content based on the avatar
 async def fetch_content(avatar_output: str):
     return await api_call(API_URL_CONTENT, {"question": avatar_output})
 
-# This function fetches the script based on the content
+# Fetch script based on the content
 async def fetch_script(content_output: str):
     predefined_text = (
         "If multiple articles are shared, pick one you think would make the best video script. "
@@ -53,6 +44,34 @@ async def fetch_script(content_output: str):
         "For the actionable steps, research and provide steps the viewer can use to solve their problem or address their needs. Details: " + content_output
     )
     return await api_call(API_URL_SCRIPT, {"question": predefined_text})
+
+# Handle /vidar, @vidar, and DMs to Vidar
+async def handle_vidar_request(interaction, message_content):
+    response = await api_call(API_URL_VIDAR, {"question": message_content}) 
+    await send_discord_message(interaction, response)
+    await interaction.followup.send("Response sent via DM!")
+
+@bot.slash_command(name="vidar", description="Handle /vidar command")
+async def vidar_slash_command(interaction: disnake.ApplicationCommandInteraction, message_content: str):
+    await interaction.response.defer()
+    await handle_vidar_request(interaction, message_content)
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    await bot.process_commands(message)
+
+    content = message.content
+    if "/vidar" in content:
+        content = content.replace("/vidar", "").strip()
+    elif "@vidar" in content:
+        content = content.replace("@vidar", "").strip()
+
+    if "/vidar" in message.content or "@vidar" in message.content or isinstance(message.channel, disnake.DMChannel):
+        response_output = await api_call(API_URL_VIDAR, {"question": content})
+        await message.author.send(response_output)
 
 @bot.slash_command(name="avatar", description="Create a psychographic client avatar")
 async def avatar(interaction: disnake.ApplicationCommandInteraction, details: str):
@@ -85,24 +104,6 @@ async def full_process(interaction: disnake.ApplicationCommandInteraction, detai
     
     await send_discord_message(interaction, script_output)
     await interaction.followup.send("Response sent via DM!")
-
-@bot.slash_command(name="vidar", description="Vidar's general QnA")
-async def vidar(interaction: disnake.ApplicationCommandInteraction, question: str):
-    await interaction.response.defer()
-    response_output = await api_call(API_URL_VIDAR, {"question": question})
-    await send_discord_message(interaction, response_output)
-    await interaction.followup.send("Response sent via DM!")
-
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-
-    if "/vidar" in message.content or "@vidar" in message.content or isinstance(message.channel, disnake.DMChannel):
-        response_output = await api_call(API_URL_VIDAR, {"question": message.content})
-        await message.author.send(response_output)
-
-
 
 @bot.event
 async def on_ready():
