@@ -34,46 +34,60 @@ async def send_discord_message(interaction, message):
         await interaction.user.send(chunk)
         message = message[2000:]
 
-@bot.slash_command(name="vidar", description="Vidar QnA")
-async def vidar(interaction: disnake.ApplicationCommandInteraction, question: str):
-    await interaction.response.defer()  # Vidar is thinking...
-    output = await api_call(API_URL_VIDAR, {"question": question})
-    await send_discord_message(interaction, output)
-    await interaction.followup.send("Response sent via DM!")  # Update the original deferred message
+# This function fetches the avatar based on the provided details
+async def fetch_avatar(details: str):
+    return await api_call(API_URL_AVATAR, {"question": details})
+
+# This function fetches the content based on the avatar
+async def fetch_content(avatar_output: str):
+    return await api_call(API_URL_CONTENT, {"question": avatar_output})
+
+# This function fetches the script based on the content
+async def fetch_script(content_output: str):
+    predefined_text = (
+        "If multiple articles are shared, pick one you think would make the best video script. "
+        "Based on the following information, write a short voice over video script that brings your business, product or service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. "
+        "Vidar For the video script, use the hook, story, actionable steps format. "
+        "For the hook, depending on what makes the most sense, use one of these ( ) based on the context of the article, blog, YouTube video, regulatory change, or conversation happening online. "
+        "For the story, take inspiration from the content and bring the business into the narrative as a solution. "
+        "For the actionable steps, research and provide steps the viewer can use to solve their problem or address their needs. Details: " + content_output
+    )
+    return await api_call(API_URL_SCRIPT, {"question": predefined_text})
 
 @bot.slash_command(name="avatar", description="Create a psychographic client avatar")
 async def avatar(interaction: disnake.ApplicationCommandInteraction, details: str):
     await interaction.response.defer()
-    avatar_output = await api_call(API_URL_AVATAR, {"question": details})
+    avatar_output = await fetch_avatar(details)
     await send_discord_message(interaction, avatar_output)
     await interaction.followup.send("Response sent via DM!") 
 
 @bot.slash_command(name="content", description="Find the latest newsworthy content for your client avatar")
 async def content(interaction: disnake.ApplicationCommandInteraction, details: str):
     await interaction.response.defer()
-    content_output = await api_call(API_URL_CONTENT, {"question": details})
+    content_output = await fetch_content(details)
     await send_discord_message(interaction, content_output)
     await interaction.followup.send("Response sent via DM!")
 
 @bot.slash_command(name="script", description="Create a custom video script")
 async def script(interaction: disnake.ApplicationCommandInteraction, topic: str):
     await interaction.response.defer()
-    script_predefined_text = ("Based on the following information, write a short voice over video script that brings your business, product or service into the narrative with the article, blog, YouTube video, regulatory change, or conversation happening online. "
-                              "Vidar For the video script, use the hook, story, actionable steps format. "
-                              "For the hook, depending on what makes the most sense, use one of these ( ) based on the context of the article, blog, YouTube video, regulatory change, or conversation happening online. "
-                              "For the story, take inspiration from the content and bring the business into the narrative as a solution. "
-                              "For the actionable steps, research and provide steps the viewer can use to solve their problem or address their needs. Details: " + topic)
-    script_output = await api_call(API_URL_SCRIPT, {"question": script_predefined_text})
+    script_output = await fetch_script(topic)
     await send_discord_message(interaction, script_output)
     await interaction.followup.send("Response sent via DM!")
-
 
 @bot.slash_command(name="full_process", description="Full process from avatar creation to video script")
 async def full_process(interaction: disnake.ApplicationCommandInteraction, details: str):
     await interaction.response.defer()
-    full_process_output = await api_call(API_URL_CONTENT, {"question": details})
-    await send_discord_message(interaction, full_process_output)
+    
+    avatar_output = await fetch_avatar(details)
+    content_output = await fetch_content(avatar_output)
+    script_output = await fetch_script(content_output)
+    
+    await send_discord_message(interaction, script_output)
     await interaction.followup.send("Response sent via DM!")
+
+# ... (rest of your events and bot.run())
+
 
 @bot.event
 async def on_ready():
