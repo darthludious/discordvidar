@@ -86,7 +86,22 @@ async def full_process(interaction: disnake.ApplicationCommandInteraction, detai
     await send_discord_message(interaction, script_output)
     await interaction.followup.send("Response sent via DM!")
 
-# ... (rest of your events and bot.run())
+@bot.slash_command(name="vidar", description="Vidar's general QnA")
+async def vidar(interaction: disnake.ApplicationCommandInteraction, question: str):
+    await interaction.response.defer()
+    response_output = await api_call(API_URL_VIDAR, {"question": question})
+    await send_discord_message(interaction, response_output)
+    await interaction.followup.send("Response sent via DM!")
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    if "/vidar" in message.content or "@vidar" in message.content or isinstance(message.channel, disnake.DMChannel):
+        response_output = await api_call(API_URL_VIDAR, {"question": message.content})
+        await message.author.send(response_output)
+
 
 
 @bot.event
