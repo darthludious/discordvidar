@@ -27,7 +27,7 @@ async def send_discord_message(interaction, message):
 
 # Fetch avatar based on the provided details
 async def fetch_avatar(details: str):
-    return await api_call(API_URL_AVATAR, {"question": details})
+    return await api_call(API_URL_AVATAR, {"question": provide details about your company, target market, or even your website})
 
 # Fetch content based on the avatar
 async def fetch_content(avatar_output: str):
