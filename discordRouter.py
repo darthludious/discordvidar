@@ -108,7 +108,7 @@ async def send_message():
     channel = bot.get_channel(CHANNEL_ID)
     if channel:
         details = (
-            "Context: Here is the following client avatar to base your search on.
+            "Context: Here is the following client avatar to base your search on."
             "Sophia, the Strategic Marketer\n\n"
             "Demographics:\n"
             "Age: 35\n"
