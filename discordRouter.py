@@ -27,7 +27,7 @@ async def send_discord_message(interaction, message):
 
 # Fetch avatar based on the provided details
 async def fetch_avatar(details: str):
-    return await api_call(API_URL_AVATAR, {"question": "provide details about your company, target market, or even your website"})
+    return await api_call(API_URL_AVATAR, {"question": details})
 
 # Fetch content based on the avatar
 async def fetch_content(avatar_output: str):
@@ -51,7 +51,7 @@ async def handle_vidar_request(interaction, message_content):
     await send_discord_message(interaction, response)
     await interaction.followup.send("Response sent via DM!")
 
-@bot.slash_command(name="vidar", description="Handle /vidar command")
+@bot.slash_command(name="vidar", description="Talk to Vidar")
 async def vidar_slash_command(interaction: disnake.ApplicationCommandInteraction, message_content: str):
     await interaction.response.defer()
     await handle_vidar_request(interaction, message_content)
