@@ -90,7 +90,7 @@ async def full_process(
     interaction: disnake.ApplicationCommandInteraction,
     details: str = commands.param(description="Provide your business details or website, and let Vidar handle everything from avatar creation to script writing."),
 ):
-       await interaction.response.defer()
+    await interaction.response.defer()
     avatar_output = await fetch_avatar(details)
     content_output = await fetch_content(avatar_output)
     script_output = await fetch_script(content_output)
