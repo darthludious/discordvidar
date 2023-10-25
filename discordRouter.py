@@ -1,7 +1,6 @@
 import os
 import aiohttp
 import disnake
-import asyncio
 from disnake.ext import commands, tasks
 
 # Environment variables
@@ -10,7 +9,6 @@ API_URL_VIDAR = os.environ["API_URL_VIDAR"]
 API_URL_AVATAR = os.environ["API_URL_AVATAR"]
 API_URL_CONTENT = os.environ["API_URL_CONTENT"]
 API_URL_SCRIPT = os.environ["API_URL_SCRIPT"]
-CHANNEL_ID = 1166731466676379729
 
 intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -98,38 +96,5 @@ async def full_process(
     await send_discord_message(interaction.channel, script_output)
     await interaction.followup.send("Response sent!")
 
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user.name} ({bot.user.id})')
-    send_message.start()  # Start the loop
-    await send_message()  # Call the function immediately
-
-@tasks.loop(hours=6)
-async def send_message():
-    channel = bot.get_channel(CHANNEL_ID)
-    if channel:
-        # Add a short delay (e.g., 5 seconds) before making the API call
-        await asyncio.sleep(5)
-        
-        details = (
-            "Objective: Use the custom tool trending, and Find 3-5 recent trending media from different sources and topics that would engage people who value creativity, innovation, and efficiency. "
-            "Please provide the links and a short summary for each. "
-            "Constraints: ONLY RESPOND WITH THE LINKS & SUMMARY INFORMATION, DO NOT COMMENT, INTRODUCE, OR CONCLUDE."
-        )
-
-        # Make an API call to Vidar
-        response = await api_call(API_URL_VIDAR, {"question": details})
-        
-        # Check if the response is valid and contains the expected data
-        if response and "answer" in response and isinstance(response["answer"], str):
-            # Send the response to the Discord channel
-            await send_discord_message(channel, response["answer"])
-        else:
-            await channel.send("There was an issue processing the request. Please try again later.")
-    else:
-        print("Channel not found")
-
 # Start the bot
 bot.run(DISCORD_BOT_TOKEN)
-
-
