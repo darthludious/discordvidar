@@ -1,6 +1,7 @@
 import os
 import aiohttp
 import disnake
+import asyncio
 from disnake.ext import commands, tasks
 
 # Environment variables
@@ -107,6 +108,9 @@ async def on_ready():
 async def send_message():
     channel = bot.get_channel(CHANNEL_ID)
     if channel:
+        # Add a short delay (e.g., 5 seconds) before making the API call
+        await asyncio.sleep(5)
+        
         details = (
             "Objective: Use the custom tool trending, and Find 3-5 recent trending media from different sources and topics that would engage people who value creativity, innovation, and efficiency. "
             "Please provide the links and a short summary for each. "
