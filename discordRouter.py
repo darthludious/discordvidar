@@ -88,7 +88,7 @@ async def script(
 @bot.slash_command(name="full_process", description="Full process from avatar creation to video script")
 async def full_process(
     interaction: disnake.ApplicationCommandInteraction,
-    details: str = commands.param(description="Provide your business details or website, and let Vidar handle everything from avatar creation to script writing."),
+    details: str = commands.param(description="Provide details about your company, target market, or website."),
 ):
     await interaction.response.defer()
     avatar_output = await fetch_avatar(details)
