@@ -108,36 +108,9 @@ async def send_message():
     channel = bot.get_channel(CHANNEL_ID)
     if channel:
         details = (
-            "Context: Here is the following client avatar to base your search on."
-            "Sophia, the Strategic Marketer"
-            "Demographics:"
-            "Age: 35"
-            "Gender: Female"
-            "Location: Urban area, United States"
-            "Occupation: Marketing Manager"
-            "Income: Above average"
-            "Psychographics:"
-            "Values: Creativity, innovation, and efficiency."
-            "Personality: Analytical, detail-oriented, and goal-driven."
-            "Interests: Marketing trends, data analytics, storytelling, and professional development."
-            "Buying Motivations:"
-            "Seeks video production services that effectively communicate brand stories and engage target audiences."
-            "Values high-quality videos that align with marketing objectives."
-            "Willing to invest in videos that deliver value and drive business growth."
-            "Buying Concerns:"
-            "Skeptical of video production companies without a strong portfolio or case studies."
-            "Worries about investing in videos that do not generate measurable results or ROI."
-            "Media Consumption:"
-            "Actively consumes industry blogs, follows marketing influencers on social media platforms."
-            "Engages in webinars, conferences, and workshops to stay updated on the latest marketing strategies and trends."
-            "Brand Interactions:"
-            "Appreciates video production companies that offer a strategic approach and understand marketing goals."
-            "Values clear communication, timely delivery, and professional collaboration."
-            "Looks for post-production support, such as video optimization and analytics."
-            "Objective: Find 3-5 recent trending media from different sources and topics that would engage Sophia, the Strategic Marketer."
-            "Please provide the links and a short summary for each."
+            "Objective: Use the custom tool trending, and Find 3-5 recent trending media from different sources and topics that would engage people who value creativity, innovation, and efficiency. "
+            "Please provide the links and a short summary for each. "
             "Constraints: ONLY RESPOND WITH THE LINKS & SUMMARY INFORMATION, DO NOT COMMENT, INTRODUCE, OR CONCLUDE."
-
         )
 
         # Make an API call to Vidar
