@@ -9,6 +9,7 @@ API_URL_VIDAR = os.environ["API_URL_VIDAR"]
 API_URL_AVATAR = os.environ["API_URL_AVATAR"]
 API_URL_CONTENT = os.environ["API_URL_CONTENT"]
 API_URL_SCRIPT = os.environ["API_URL_SCRIPT"]
+CHANNEL_ID = 1166731466676379729
 
 intents = disnake.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -18,10 +19,10 @@ async def api_call(url, payload):
         async with session.post(url, json=payload) as response:
             return await response.json()
 
-async def send_discord_message(interaction, message):
+async def send_discord_message(channel, message):
     while message:
         chunk = message[:2000]
-        await interaction.send(chunk)
+        await channel.send(chunk)
         message = message[2000:]
 
 # Fetch avatar based on the provided details
@@ -47,72 +48,66 @@ async def fetch_script(content_output: str):
 # Handle /vidar, @vidar, and DMs to Vidar
 async def handle_vidar_request(interaction, message_content):
     response = await api_call(API_URL_VIDAR, {"question": message_content}) 
-    await send_discord_message(interaction, response)
+    await send_discord_message(interaction.channel, response)
 
 @bot.slash_command(name="vidar", description="Talk to Vidar")
 async def vidar_slash_command(interaction: disnake.ApplicationCommandInteraction, message_content: str):
     await interaction.response.defer()
     await handle_vidar_request(interaction, message_content)
 
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-
-    await bot.process_commands(message)
-
-    if bot.user.mentioned_in(message):
-        content = message.content.replace(f"<@!{bot.user.id}>", "").strip()
-        response_output = await api_call(API_URL_VIDAR, {"question": content})
-        await message.channel.send(response_output)
-    elif "/vidar" in message.content or isinstance(message.channel, disnake.DMChannel):
-        content = message.content.replace("/vidar", "").strip()
-        response_output = await api_call(API_URL_VIDAR, {"question": content})
-        await message.author.send(response_output)
-
 @bot.slash_command(name="avatar", description="Create a psychographic client avatar")
-async def avatar(interaction: disnake.ApplicationCommandInteraction, details: str):
+async def avatar(
+    interaction: disnake.ApplicationCommandInteraction,
+    details: str = commands.param(description="Provide details about your company, target market, or website."),
+):
     await interaction.response.defer()
     avatar_output = await fetch_avatar(details)
-    await send_discord_message(interaction, avatar_output)
+    await send_discord_message(interaction.channel, avatar_output)
     await interaction.followup.send("Response sent!") 
 
 @bot.slash_command(name="content", description="Find the latest newsworthy content for your client avatar")
-async def content(interaction: disnake.ApplicationCommandInteraction, details: str):
+async def content(
+    interaction: disnake.ApplicationCommandInteraction,
+    details: str = commands.param(description="Provide the client avatar for optimal results."),
+):
     await interaction.response.defer()
     content_output = await fetch_content(details)
-    await send_discord_message(interaction, content_output)
+    await send_discord_message(interaction.channel, content_output)
     await interaction.followup.send("Response sent!")
 
-@bot.slash_command(name="script", description="Create a custom video script")
-async def script(interaction: disnake.ApplicationCommandInteraction, topic: str):
+@bot.slash_command(name="script", description="Create a custom voice-over video script")
+async def script(
+    interaction: disnake.ApplicationCommandInteraction,
+    topic: str = commands.param(description="Provide an article and your client avatar. Add any extra details to tailor the script to your audience."),
+):
     await interaction.response.defer()
     script_output = await fetch_script(topic)
-    await send_discord_message(interaction, script_output)
+    await send_discord_message(interaction.channel, script_output)
     await interaction.followup.send("Response sent!")
 
 @bot.slash_command(name="full_process", description="Full process from avatar creation to video script")
-async def full_process(interaction: disnake.ApplicationCommandInteraction, details: str):
-    await interaction.response.defer()
+async def full_process(
+    interaction: disnake.ApplicationCommandInteraction,
+    details: str = commands.param(description="Provide your business details or website, and let Vidar handle everything from avatar creation to script writing."),
+):
+       await interaction.response.defer()
     avatar_output = await fetch_avatar(details)
     content_output = await fetch_content(avatar_output)
     script_output = await fetch_script(content_output)
-    await send_discord_message(interaction, script_output)
+    await send_discord_message(interaction.channel, script_output)
     await interaction.followup.send("Response sent!")
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name} ({bot.user.id})')
-    send_message.start()
-
-CHANNEL_ID = 1166731466676379729
+    send_message.start()  # Start the loop
+    await send_message()  # Call the function immediately
 
 @tasks.loop(hours=6)
 async def send_message():
     channel = bot.get_channel(CHANNEL_ID)
     if channel:
-        message = (
-            f"<@!{bot.user.id}> Objective: find the latest trending media that would engage the following client psychographic avatar and provide a short summary of each trending media.\n\n"
+        details = (
             "Sophia, the Strategic Marketer\n\n"
             "Demographics:\n"
             "Age: 35\n"
@@ -138,12 +133,17 @@ async def send_message():
             "Appreciates video production companies that offer a strategic approach and understand marketing goals.\n"
             "Values clear communication, timely delivery, and professional collaboration.\n"
             "Looks for post-production support, such as video optimization and analytics."
-            
-            "Constraints: Never start with something like Here are some of the latest trending media that would engage Sophia, the Strategic Marketer. "
-            "Never end your message with something like Please note that these are just a few examples of the trending media. Let me know if you would like more information on any specific topic."
-            "IMPORTANT: ONLY RESPOND WITH THE INFORMATION, DO NOT COMMENT, INTRODUCE, OR FOLLOW UP"
         )
-        await channel.send(message)
+
+        # Make an API call to Vidar
+        response = await api_call(API_URL_VIDAR, {"question": details})
+        
+        # Check if the response is valid and contains the expected data
+        if response and "answer" in response and isinstance(response["answer"], str):
+            # Send the response to the Discord channel
+            await send_discord_message(channel, response["answer"])
+        else:
+            await channel.send("There was an issue processing the request. Please try again later.")
     else:
         print("Channel not found")
 
