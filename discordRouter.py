@@ -108,6 +108,7 @@ async def send_message():
     channel = bot.get_channel(CHANNEL_ID)
     if channel:
         details = (
+            "Context: Here is the following client avatar to base your search on.
             "Sophia, the Strategic Marketer\n\n"
             "Demographics:\n"
             "Age: 35\n"
@@ -133,6 +134,9 @@ async def send_message():
             "Appreciates video production companies that offer a strategic approach and understand marketing goals.\n"
             "Values clear communication, timely delivery, and professional collaboration.\n"
             "Looks for post-production support, such as video optimization and analytics."
+            "Objective:  Find 3-5 recent trending media from different sources and topics that would engage Sophia, the Strategic Marketer. "
+            "Please provide the links and a short summary for each. "
+            "Constraints: ONLY RESPOND WITH THE LINKS & SUMMARY INFORMATION, DO NOT COMMENT, INTRODUCE, OR CONCLUDE."
         )
 
         # Make an API call to Vidar
