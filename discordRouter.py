@@ -65,10 +65,10 @@ async def avatar(
     await send_discord_message(interaction.channel, avatar_output)
     await interaction.followup.send("Response sent!") 
 
-@bot.slash_command(name="content", description="Find the latest newsworthy content for your client avatar")
+@bot.slash_command(name="content", description="Find the latest newsworthy content")
 async def content(
     interaction: disnake.ApplicationCommandInteraction,
-    details: str = commands.param(description="Provide the client avatar for optimal results."),
+    details: str = commands.param(description="Provide avatar, or target market"),
 ):
     await interaction.response.defer()
     content_output = await fetch_content(details)
@@ -78,7 +78,7 @@ async def content(
 @bot.slash_command(name="script", description="Create a custom voice-over video script")
 async def script(
     interaction: disnake.ApplicationCommandInteraction,
-    topic: str = commands.param(description="Provide an article and your client avatar. Add any extra details to tailor the script to your audience."),
+    topic: str = commands.param(description="Provide an article and your client avatar."),
 ):
     await interaction.response.defer()
     script_output = await fetch_script(topic)
