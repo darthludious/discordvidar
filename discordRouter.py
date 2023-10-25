@@ -63,15 +63,15 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-    content = message.content
-    if "/vidar" in content:
-        content = content.replace("/vidar", "").strip()
-    elif "@vidar" in content:
-        content = content.replace("@vidar", "").strip()
-
-    if "/vidar" in message.content or "@vidar" in message.content or isinstance(message.channel, disnake.DMChannel):
+    if bot.user.mentioned_in(message):
+        content = message.content.replace(f"<@!{bot.user.id}>", "").strip()
+        response_output = await api_call(API_URL_VIDAR, {"question": content})
+        await message.channel.send(response_output)
+    elif "/vidar" in message.content or isinstance(message.channel, disnake.DMChannel):
+        content = message.content.replace("/vidar", "").strip()
         response_output = await api_call(API_URL_VIDAR, {"question": content})
         await message.author.send(response_output)
+
 
 @bot.slash_command(name="avatar", description="Create a psychographic client avatar")
 async def avatar(interaction: disnake.ApplicationCommandInteraction, details: str):
