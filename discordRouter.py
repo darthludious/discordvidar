@@ -18,15 +18,15 @@ async def api_call(url, payload):
         async with session.post(url, json=payload) as response:
             return await response.json()
 
-async def send_discord_message(user, message):
-    # Ensure message is a string
-    if not isinstance(message, str):
-        message = str(message)
+async def send_discord_message(user, response):
+    # Extract the message text from the response dictionary
+    message = response.get('text', '')  # Fallback to an empty string if 'text' key is not found
 
     while message:
         chunk = message[:2000]
         await user.send(chunk)
         message = message[2000:]
+
 
 
 # Fetch avatar based on the provided details
